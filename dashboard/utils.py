@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-
+from os.path import exists
 import math
 
 
@@ -10,7 +10,11 @@ class Utils:
 
         self.path_cma_correlation_matrix = '../CMA Corr.xlsx'
         self.path_input_cma = '../CMA.xlsx'
+        self.path_cc_scen_raw = '../CC Scen.xlsx'
+        self.path_cc_scen_permanent = '../Permanent/CC Scen.xlsx'
+        self.path_input_cma_permanent = '../Permanent/CMA.xlsx'
         self.path_portfolio_allocation_table = '../Portfolio Allocation.xlsx'
+        self.path_portfolio_allocation_table_permanent ='../Permanent/Portfolio Allocation.xlsx'
         self.path_passive_correlation_matrix = '../Passive Correlation Table.xlsx'
         self.path_active_correlation_table = '../Active Correlation Table.xlsx'
         self.path_passive_covaiance_table = '../Passive Covariance Table.xlsx'
@@ -21,8 +25,12 @@ class Utils:
 
     def get_portfolio(self):
 
-        portfolio_allocation_Df = pd.read_excel(
+        if exists(self.path_portfolio_allocation_table):
+            portfolio_allocation_Df = pd.read_excel(
             self.path_portfolio_allocation_table, skiprows=[2])
+        else:
+            portfolio_allocation_Df = pd.read_excel(self.path_portfolio_allocation_table_permanent, skiprows=[2])
+
         portfolio_allocation_Df = portfolio_allocation_Df.drop(0)
         portfolio_allocation_Df.columns = portfolio_allocation_Df.loc[1]
         portfolio_allocation_Df = portfolio_allocation_Df.drop(1)
@@ -34,6 +42,29 @@ class Utils:
             columns={portfolio_allocation_Df.columns[0]: 'Portfolio Names'}, inplace=True)
 
         return portfolio_allocation_Df
+
+    def get_CCScen(self):
+
+        if exists(self.path_cc_scen_raw):
+            CCScen = pd.read_excel(self.path_cc_scen_raw, skiprows=[2])
+        else:
+            CCScen = pd.read_excel(self.path_cc_scen_permanent, skiprows=[2])
+        CCScen = CCScen.drop(0)
+        CCScen.columns = CCScen.loc[1]
+        CCScen = CCScen.drop(1)
+        CCScen = CCScen.drop(2)
+        CCScen.drop(CCScen.columns[[3]], axis=1, inplace=True)
+        CCScen.columns = ['Scenario', 'Asset Class', 'Scenario and Asset Class', '2021',
+                          '2022', '2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030']
+        CCScen['Cumulative 1yr'] = CCScen['2021']
+        CCScen['Cumulative 3yr'] = CCScen.apply(lambda x: (
+            ((1 + x['2021']/100)*(1 + x['2022']/100)*(1 + x['2023']/100))**(1/3))-1, axis=1)
+        CCScen['Cumulative 5yr'] = CCScen.apply(lambda x: (((1 + x['2021']/100)*(1 + x['2022']/100)*(
+            1 + x['2023']/100)*(1 + x['2024']/100)*(1 + x['2025']/100))**(1/5))-1, axis=1)
+        CCScen['Cumulative 10yr'] = CCScen.apply(lambda x: (((1 + x['2021']/100)*(1 + x['2022']/100)*(1 + x['2023']/100)*(1 + x['2024']/100)*(
+            1 + x['2025']/100)*(1 + x['2026']/100)*(1 + x['2027']/100)*(1 + x['2028']/100)*(1 + x['2029']/100)*(1 + x['2030']/100))**(1/10))-1, axis=1)
+
+        return CCScen
 
     def get_cma_correlation_table(self):
 
@@ -47,7 +78,10 @@ class Utils:
     def get_Setup(self):
 
         portfolio_allocation_Df = self.get_portfolio()
-        CMA = pd.read_excel(self.path_input_cma)
+        if exists(self.path_input_cma):
+            CMA = pd.read_excel(self.path_input_cma)
+        else:
+            CMA = pd.read_excel(self.path_input_cma_permanent)
         CMA.drop(CMA.columns[[0, 5, 13]], axis=1, inplace=True)
         CMA.columns = CMA.loc[0]
         CMA = CMA.drop(0)
@@ -159,8 +193,10 @@ class Utils:
         passive_covarianceDf = self.get_passive_correlation_table()
         passive_covariancenp = self.get_passive_covariance_np_matrix()
         passive_covariancenp = self.diagonalise_matrix(passive_covariancenp)
-        active_covarianceDf = pd.DataFrame(passive_covariancenp, columns=passive_covarianceDf.columns)
-        active_covarinceDf = active_covarianceDf.set_index(passive_covarianceDf.columns, inplace=True)
+        active_covarianceDf = pd.DataFrame(
+            passive_covariancenp, columns=passive_covarianceDf.columns)
+        active_covarinceDf = active_covarianceDf.set_index(
+            passive_covarianceDf.columns, inplace=True)
 
         return active_covarianceDf
 
@@ -171,6 +207,33 @@ class Utils:
         total_covarianceDf = passive_covarianceDf + active_covarianceDf
 
         return total_covarianceDf
+
+    def get_climate_change_stress_tests(self):
+        CCScen = self.get_CCScen()
+        Transition2C = CCScen[CCScen['Scenario'] == 'Transition (2°C)']
+        LowMitigation4C = CCScen[CCScen['Scenario'] == 'Low Mitigation (4°C)']
+        PA = self.get_portfolio()
+        PortfolioNames = pd.DataFrame(PA['Portfolio Names'])
+        Transition2CMerged = PortfolioNames.merge(
+            Transition2C, left_on='Portfolio Names', right_on='Asset Class')
+        Transition2CFiltered = Transition2CMerged[[
+            'Portfolio Names', 'Cumulative 1yr', 'Cumulative 3yr', 'Cumulative 5yr', 'Cumulative 10yr']]
+        LowMitigation4CMerged = PortfolioNames.merge(
+            LowMitigation4C, left_on='Portfolio Names', right_on='Asset Class')
+        LowMitigation4CFiltered = LowMitigation4CMerged[[
+            'Portfolio Names', 'Cumulative 1yr', 'Cumulative 3yr', 'Cumulative 5yr', 'Cumulative 10yr']]
+        twoC_columns = [Transition2CFiltered.columns[0]]
+        twoC_columns.extend(
+            [x + ' 2C' for x in Transition2CFiltered.columns if x != 'Portfolio Names'])
+        Transition2CFiltered.columns = twoC_columns
+        fourC_columns = [LowMitigation4CFiltered.columns[0]]
+        fourC_columns.extend(
+            [x+' 4C' for x in LowMitigation4CFiltered.columns if x != 'Portfolio Names'])
+        LowMitigation4CFiltered.columns = fourC_columns
+        climate_change_stress_testsDf = Transition2CFiltered.merge(
+            LowMitigation4CFiltered, on='Portfolio Names')
+
+        return climate_change_stress_testsDf
 
     def write_passive_correlation_matrix(self):
 
@@ -277,27 +340,43 @@ class Utils:
                              'Active Return (Gross)', 'Active Risk', 'Fee', 'Passive Return (Arith/Annual)', 'Passive Return (Compound/Geo)',
                              'Passive Risk', 'Diversification Benefit']]
         result_risk_allocation_calculation = resultDf.transpose()
+        result_risk_allocation_calculation = (
+            100 * result_risk_allocation_calculation.astype(float).round(4)).astype(str) + '%'
 
         return result_risk_allocation_calculation
 
     def get_result_climate_change_stress_tests(self):
 
-        CCstressTest = pd.read_excel(self.path_climate_change_stress_tests)
-        CCstressTest.drop(CCstressTest.columns[0], axis=1, inplace=True)
+        CCstressTest = self.get_climate_change_stress_tests()
+        # CCstressTest.drop(CCstressTest.columns[0], axis=1, inplace=True)
         portfolio_allocation_Df = self.get_portfolio()
         CCstressTestMerge = CCstressTest.merge(
             portfolio_allocation_Df, how='inner', on=portfolio_allocation_Df.columns[0])
         ClimateChangeStressTestsDf = pd.DataFrame(CCstressTestMerge[CCstressTestMerge.columns[9:30]].multiply(
-            CCstressTestMerge[CCstressTestMerge.columns[1]]*100, axis="index").sum()).transpose()
+            CCstressTestMerge[CCstressTestMerge.columns[1]] * 100, axis="index").sum()).transpose()
         ClimateChangeStressTestsDf = ClimateChangeStressTestsDf.rename(
             index={0: CCstressTestMerge.columns[1]})
         for i in range(2, 9):
             nm = CCstressTestMerge.columns[i]
             currDf = pd.DataFrame(CCstressTestMerge[CCstressTestMerge.columns[9:30]].multiply(
-                CCstressTestMerge[nm]*100, axis="index").sum()).transpose()
+                CCstressTestMerge[nm] * 100, axis="index").sum()).transpose()
             currDf = currDf.rename(index={0: nm})
             ClimateChangeStressTestsDf = pd.concat(
                 [ClimateChangeStressTestsDf, currDf], axis=0)
-        result_climate_change_stress_tests = ClimateChangeStressTestsDf
+        ClimateChangeStressTestsDf = (
+            ClimateChangeStressTestsDf.astype(float).round(2)).astype(str) + '%'
+        ClimateChangeStressTestsDf = ClimateChangeStressTestsDf.transpose()
+        ClimateChangeStressTestsDf.columns = ['Transition (2°C) 1yr', 'Transition (2°C) 3yr', 'Transition (2°C) 5yr',
+                                              'Transition (2°C) 10yr',
+                                              'Low Mitigation (4°C) 1yr', 'Low Mitigation (4°C) 3yr',
+                                              'Low Mitigation (4°C) 5yr', 'Low Mitigation (4°C) 10yr']
+        ClimateChangeStressTestsDf['1 Year'] = ''
+        ClimateChangeStressTestsDf['3 Year'] = ''
+        ClimateChangeStressTestsDf['5 Year'] = ''
+        ClimateChangeStressTestsDf['10 Year'] = ''
+        result_climate_change_stress_tests = ClimateChangeStressTestsDf[
+            ['1 Year', 'Transition (2°C) 1yr', 'Low Mitigation (4°C) 1yr', '3 Year', 'Transition (2°C) 3yr',
+             'Low Mitigation (4°C) 3yr', '5 Year', 'Transition (2°C) 5yr', 'Low Mitigation (4°C) 5yr', '10 Year', 'Transition (2°C) 10yr',
+             'Low Mitigation (4°C) 10yr']].transpose()
 
         return result_climate_change_stress_tests

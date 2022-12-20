@@ -1,10 +1,10 @@
 /* Logo */
 /* Adapted from Zachary Blackwood */
 [data-testid="stSidebar"] {
-                background-image: url(https://streamlit.io/images/brand/streamlit-logo-secondary-colormark-darktext.png);
-                background-size: 200px;
+                background-image: url(https://www.mosba.org/wp-content/uploads/2018/01/Mercer-logo-600x83.jpg);
+                background-size: 250px;
                 background-repeat: no-repeat;
-                background-position: 4px 20px;
+                background-position: 10px 20px;
             }
 
 
