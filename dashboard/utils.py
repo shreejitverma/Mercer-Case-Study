@@ -7,6 +7,7 @@ import math
 class Utils:
 
     def __init__(self):
+        ''' Initialise all the paths'''
 
         self.path_cma_correlation_matrix = '../CMA Corr.xlsx'
         self.path_input_cma = '../CMA.xlsx'
@@ -25,6 +26,7 @@ class Utils:
         self.path_Final_Portfolio = '../Portfolio Final Result.xlsx'
 
     def get_portfolio(self):
+        '''Get Processed Portfolio from uploaded Portfolio Allocation Table'''
 
         if exists(self.path_portfolio_allocation_table):
             portfolio_allocation_Df = pd.read_excel(
@@ -46,6 +48,7 @@ class Utils:
         return portfolio_allocation_Df
 
     def get_CMA(self):
+        '''Gets processed CMA Table from the uploaded CMA'''
 
         if exists(self.path_input_cma):
             CMA = pd.read_excel(self.path_input_cma)
@@ -57,6 +60,7 @@ class Utils:
         return CMA
 
     def get_CCScen(self):
+        '''Gets processed CC Scen Table from the uploaded CC Scen'''
 
         if exists(self.path_cc_scen_raw):
             CCScen = pd.read_excel(self.path_cc_scen_raw, skiprows=[2])
@@ -87,6 +91,7 @@ class Utils:
         return CCScen
 
     def get_cma_correlation_table(self):
+        '''Calculates CMA Correlation Table'''
 
         cma_correlation_Df = pd.read_excel(self.path_cma_correlation_matrix)
         cma_correlation_Df.rename(
@@ -96,6 +101,7 @@ class Utils:
         return cma_correlation_Df
 
     def get_Setup(self):
+        '''Gets processed Setup Table (First Table in Setup Tab)'''
 
         portfolio_allocation_Df = self.get_portfolio()
         if exists(self.path_input_cma):
@@ -137,6 +143,7 @@ class Utils:
         return SETUP_new
 
     def diagonalise_matrix(self, mat, one=False):
+        '''Gets diagonal matrix'''
 
         n = len(mat)
         m = len(mat[0])
@@ -152,6 +159,7 @@ class Utils:
         return mat
 
     def get_passive_correlation_matrix(self):
+        '''Calculates Passive Correlation Matrix'''
 
         df = pd.read_excel(self.path_cma_correlation_matrix)
         df.rename(columns={'Unnamed: 0': 'Asset Class'}, inplace=True)
@@ -163,6 +171,7 @@ class Utils:
         return df3
 
     def get_passive_correlation_table(self):
+        '''Calculates Passive Correlation Table'''
 
         cma_correlation_Df = self.get_cma_correlation_table()
         portfolio_allocation_Df = self.get_portfolio()
@@ -175,6 +184,7 @@ class Utils:
         return passive_correlation_table
 
     def get_passive_covariance_np_matrix(self):
+        '''Calculates Passive Correlation Numpy Matrix'''
 
         SETUP_new = self.get_Setup()
         volatility = np.array([SETUP_new['Volatility - SD']])
@@ -186,6 +196,7 @@ class Utils:
         return passive_covariancenp
 
     def get_passive_covariance_table(self):
+        '''Calculates Passive Covariance Table'''
 
         PCT = self.get_passive_correlation_table()
         PCT.rename(columns={'Unnamed: 0': 'Portfolio Names'}, inplace=True)
@@ -198,6 +209,7 @@ class Utils:
         return passive_covarianceDf
 
     def get_active_correlation_table(self):
+        '''Calculates Active Correlation Table from provided CMA'''
 
         passive_correlation_table = self.get_passive_correlation_table()
         active_correlation_np = passive_correlation_table.to_numpy()
@@ -210,6 +222,7 @@ class Utils:
         return active_correlation_table
 
     def get_active_covariance_table(self):
+        '''Calculates Active Covariance Table from provided CMA'''
 
         passive_covarianceDf = self.get_passive_correlation_table()
         passive_covariancenp = self.get_passive_covariance_np_matrix()
@@ -222,6 +235,7 @@ class Utils:
         return active_covarianceDf
 
     def get_total_covariance_table(self):
+        '''Calculates Total Covariance Table from provided CMA'''
 
         passive_covarianceDf = self.get_passive_covariance_table()
         active_covarianceDf = self.get_active_covariance_table()
@@ -230,6 +244,7 @@ class Utils:
         return total_covarianceDf
 
     def get_climate_change_stress_tests(self):
+        '''Calculates Climate Change Stress Tests Table that will be written in end of Setup Tab'''
         CCScen = self.get_CCScen()
         Transition2C = CCScen[CCScen['Scenario'] == 'Transition (2°C)']
         LowMitigation4C = CCScen[CCScen['Scenario'] == 'Low Mitigation (4°C)']
@@ -257,6 +272,7 @@ class Utils:
         return climate_change_stress_testsDf
 
     def get_risk_return_calculation(self):
+        '''Calculates Risk Return the first required result'''
         PA = self.get_portfolio()
         SETUP = self.get_Setup()
         SETUP.drop(SETUP.columns[0], axis=1, inplace=True)
@@ -337,6 +353,7 @@ class Utils:
         return risk_return_calculationDf
 
     def get_result_climate_change_stress_tests(self):
+        '''Calculates required result for Climate Change Stress Tests (the second required result)'''
 
         CCstressTest = self.get_climate_change_stress_tests()
         # CCstressTest.drop(CCstressTest.columns[0], axis=1, inplace=True)
@@ -374,6 +391,7 @@ class Utils:
         return result_climate_change_stress_tests
 
     def write_passive_correlation_matrix(self):
+        '''Writes Passive Correlation Table in excel'''
 
         correlation_matrix = self.get_passive_correlation_matrix()
         correlation_matrix.to_excel()
@@ -381,6 +399,7 @@ class Utils:
         return
 
     def write_passive_covariance_table(self):
+        '''Writes Passive Covariance Table in excel'''
 
         passive_covariance_table = self.get_passive_covariance_table()
         passive_covariance_table.to_excel(self.path_passive_covaiance_table)
@@ -388,6 +407,7 @@ class Utils:
         return
 
     def write_active_correlation_table(self):
+        '''Writes Active Correlation Table in excel'''
 
         active_correlation_table = self.get_active_correlation_table()
         active_correlation_table.to_excel(self.path_active_correlation_table)
@@ -395,6 +415,7 @@ class Utils:
         return
 
     def write_active_covariance_table(self):
+        '''Writes Active Covariance Table in excel'''
 
         active_covariance_table = self.get_active_covariance_table()
         active_covariance_table.to_excel(self.path_active_covariance_table)
@@ -402,6 +423,7 @@ class Utils:
         return
 
     def write_total_covariance_table(self):
+        '''Writes Total Covariance Table in excel'''
 
         total_covariance_table = self.get_total_covariance_table()
         total_covariance_table.to_excel(self.path_total_covariance_table)
@@ -409,6 +431,7 @@ class Utils:
         return
 
     def write_final_report(self):
+        '''Writes Final Report in excel with All the Sheets(i.e. Allocation and Result, Setup, CMA, and CCScen) in it'''
         cma = self.get_CMA()
         SETUP_new = self.get_Setup()
         df = SETUP_new

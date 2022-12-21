@@ -52,20 +52,27 @@ if not portfolio_allocationDf.empty:
 # --------------------------Uploading Files Ends --------------------------------------
 
 UT = Utils()
-st.markdown(""" Risk Return Calculaion""")
-st.checkbox("Use container width", value=False,
-            key="result_risk_allocation_width")
-risk_return_calculationDf = UT.get_risk_return_calculation()
-st.dataframe(data=risk_return_calculationDf,
-             use_container_width=st.session_state.result_risk_allocation_width)
 
+st.button(
+    'Risk Return Calculaion', key='risk_return_calculaion')
+if st.session_state.risk_return_calculaion:
 
-st.markdown(""" Climate Change Stress Test """)
-st.checkbox("Use container width", value=False,
-            key="result_climate_change_stress_tests_width")
-result_climate_change_stress_tests = UT.get_result_climate_change_stress_tests()
-st.dataframe(data=result_climate_change_stress_tests,
-             use_container_width=st.session_state.result_climate_change_stress_tests_width)
+    st.markdown(""" Risk Return Calculaion""")
+    st.checkbox("Use container width", value=False,
+                key="result_risk_allocation_width")
+    risk_return_calculationDf = UT.get_risk_return_calculation()
+    st.dataframe(data=risk_return_calculationDf,
+                 use_container_width=st.session_state.result_risk_allocation_width)
+
+st.button(
+    'Climate Change Stress Test Calculaion', key="change_stress_test_calculaion")
+if st.session_state.change_stress_test_calculaion:
+    st.markdown(""" Climate Change Stress Test """)
+    st.checkbox("Use container width", value=False,
+                key="result_climate_change_stress_tests_width")
+    result_climate_change_stress_tests = UT.get_result_climate_change_stress_tests()
+    st.dataframe(data=result_climate_change_stress_tests,
+                 use_container_width=st.session_state.result_climate_change_stress_tests_width)
 
 if st.button('Generate Final Report'):
 
