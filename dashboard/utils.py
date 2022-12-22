@@ -520,9 +520,6 @@ class Utils:
         passive_correlation.to_excel(
             writer, sheet_name='Setup', startrow=1, startcol=df.shape[1] + 2)
 
-
-
-
         worksheet.write_string(
             passive_correlation.shape[0] + 6, df.shape[1] + 2, 'Passive Covariance Table')
         passive_covarianceDf.to_excel(writer, sheet_name='Setup', startrow=passive_correlation.shape[0] + 7,
@@ -556,11 +553,9 @@ class Utils:
                                 startcol=active_correlation_table.shape[1] + passive_correlation.shape[1] + df.shape[
                                     1] + 6)
 
-        worksheet.write_string(passive_correlation.shape[0] + passive_covarianceDf.shape[0]+ 8,
-                               active_correlation_table.shape[1] +
-                               passive_correlation.shape[1] + df.shape[1] + 6,
+        worksheet.write_string(passive_correlation.shape[0] + passive_covarianceDf.shape[0]+ 12, passive_correlation.shape[1] + df.shape[1] + 4,
                                'Total Covariance Table')
-        total_covarianceDf.to_excel(writer, sheet_name='Setup', startrow=passive_correlation.shape[0] + passive_covarianceDf.shape[0]+ 11,
+        total_covarianceDf.to_excel(writer, sheet_name='Setup', startrow=passive_correlation.shape[0] + passive_covarianceDf.shape[0]+ 13,
                                     startcol=passive_correlation.shape[1] + df.shape[1] + 4)
 
         worksheet.set_column(3, 3, None, format1)
