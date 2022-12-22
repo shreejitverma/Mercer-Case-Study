@@ -78,6 +78,7 @@ class Utils:
             ((1 + x['2021'] / 100) * (1 + x['2022'] / 100) * (
                 1 + x['2023'] / 100)) ** (1 / 3)) - 1,
             axis=1)
+
         CCScen['Cumulative 5yr'] = CCScen.apply(lambda x: (((1 + x['2021'] / 100) * (1 + x['2022'] / 100) * (
             1 + x['2023'] / 100) * (1 + x['2024'] / 100) * (1 + x['2025'] / 100)) ** (1 / 5)) - 1, axis=1)
         CCScen['Cumulative 10yr'] = CCScen.apply(lambda x: (((1 + x['2021'] / 100) * (1 + x['2022'] / 100) * (
@@ -87,7 +88,9 @@ class Utils:
             1 + x['2028'] / 100) * (
             1 + x['2029'] / 100) * (
             1 + x['2030'] / 100)) ** (1 / 10)) - 1, axis=1)
-
+        CCScen['Cumulative 3yr'] *= 100
+        CCScen['Cumulative 5yr'] *= 100
+        CCScen['Cumulative 10yr'] *= 100
         return CCScen
 
     def get_cma_correlation_table(self):
@@ -161,8 +164,9 @@ class Utils:
     def get_passive_correlation_matrix(self):
         '''Calculates Passive Correlation Matrix'''
 
-        df = pd.read_excel(self.path_cma_correlation_matrix)
-        df.rename(columns={'Unnamed: 0': 'Asset Class'}, inplace=True)
+        df = self.get_cma_correlation_table()
+        #     pd.read_excel(self.path_cma_correlation_matrix)
+        # df.rename(columns={'Unnamed: 0': 'Asset Class'}, inplace=True)
         portfolio_allocation_Df = self.get_portfolio()
         df2 = portfolio_allocation_Df[['Portfolio Names']].merge(
             df, left_on='Portfolio Names', right_on='Asset Class')
@@ -310,7 +314,7 @@ class Utils:
         resultDf['Total Net Return (Compound/Geo)'] = resultDf.apply(
             lambda x: math.exp(((math.log(1 + x['Total Return (Ann/Arith)']) - (
                 math.log(1 + ((x['Total Risk'] ** 2) / ((1 + x['Total Return (Ann/Arith)']) ** 2)))) / 2))) - 1, axis=1)
-        # resultDf['Return/Risk'] = resultDf.apply(lambda x: x['Total Return (Ann/Arith)']/x['Total Risk'] if x['Total Risk'] != 0.0 else 0)
+        resultDf['Return/Risk'] = resultDf.apply(lambda x: x['Total Return (Ann/Arith)']/x['Total Risk'] if x['Total Risk'] != 0.0 else 0, axis = 1)
         resultDf['Active Net Excess Return'] = resultDf['Active Return (Gross)'] - \
             resultDf['Fee']
         # pd.read_excel('Active Covariance Table.xlsx')
@@ -342,13 +346,12 @@ class Utils:
         diversification_benefit
         resultDf['Diversification Benefit'] = diversification_benefit
         resultDf = resultDf[
-            ['Total Return (Ann/Arith)', 'Total Net Return (Compound/Geo)', 'Total Risk', 'Active Net Excess Return',
+            ['Total Return (Ann/Arith)', 'Total Net Return (Compound/Geo)', 'Total Risk','Return/Risk', 'Active Net Excess Return',
              'Active Return (Gross)', 'Active Risk', 'Fee', 'Passive Return (Arith/Annual)',
              'Passive Return (Compound/Geo)',
              'Passive Risk', 'Diversification Benefit']]
         risk_return_calculationDf = resultDf.transpose()
-        risk_return_calculationDf = (
-            100 * risk_return_calculationDf.astype(float).round(4)).astype(str) + '%'
+        risk_return_calculationDf = (risk_return_calculationDf.astype(float).round(6)) #.astype(str) + '%'
 
         return risk_return_calculationDf
 
@@ -361,18 +364,19 @@ class Utils:
         CCstressTestMerge = CCstressTest.merge(
             portfolio_allocation_Df, how='inner', on=portfolio_allocation_Df.columns[0])
         ClimateChangeStressTestsDf = pd.DataFrame(CCstressTestMerge[CCstressTestMerge.columns[9:30]].multiply(
-            CCstressTestMerge[CCstressTestMerge.columns[1]] * 100, axis="index").sum()).transpose()
+            CCstressTestMerge[CCstressTestMerge.columns[1]], axis="index").sum()).transpose()
         ClimateChangeStressTestsDf = ClimateChangeStressTestsDf.rename(
             index={0: CCstressTestMerge.columns[1]})
+
         for i in range(2, 9):
             nm = CCstressTestMerge.columns[i]
             currDf = pd.DataFrame(CCstressTestMerge[CCstressTestMerge.columns[9:30]].multiply(
-                CCstressTestMerge[nm] * 100, axis="index").sum()).transpose()
+                CCstressTestMerge[nm] , axis="index").sum()).transpose()
             currDf = currDf.rename(index={0: nm})
             ClimateChangeStressTestsDf = pd.concat(
                 [ClimateChangeStressTestsDf, currDf], axis=0)
         ClimateChangeStressTestsDf = (
-            ClimateChangeStressTestsDf.astype(float).round(2)).astype(str) + '%'
+            ClimateChangeStressTestsDf.astype(float).round(8)) #.astype(str) + '%'
         ClimateChangeStressTestsDf = ClimateChangeStressTestsDf.transpose()
         ClimateChangeStressTestsDf.columns = ['Transition (2°C) 1yr', 'Transition (2°C) 3yr', 'Transition (2°C) 5yr',
                                               'Transition (2°C) 10yr',
@@ -432,7 +436,6 @@ class Utils:
 
     def write_final_report(self):
         '''Writes Final Report in excel with All the Sheets(i.e. Allocation and Result, Setup, CMA, and CCScen) in it'''
-        cma = self.get_CMA()
         SETUP_new = self.get_Setup()
         df = SETUP_new
         df.index = [i for i in range(1, df.shape[0] + 1)]
@@ -483,6 +486,12 @@ class Utils:
         portfolio_allocation_Df.index = [i for i in range(
             1, portfolio_allocation_Df.shape[0] + 1)]
 
+        format1 = workbook.add_format({'num_format': '0.00%'})
+        format2 = workbook.add_format({'num_format': '0.00'})
+        format3 = workbook.add_format({'num_format': '0.000'})
+        worksheet.set_column(1, len(portfolio_allocation_Df.columns), None, format1)
+        worksheet.set_row(34, None, format3)
+
         portfolio_allocation_Df.to_excel(
             writer, sheet_name='Allocation and Results', startrow=0, startcol=0)
 
@@ -502,11 +511,17 @@ class Utils:
         # Writing Setup Sheet
         worksheet = workbook.add_worksheet('Setup')
         writer.sheets['Setup'] = worksheet
+
+
+
         df.to_excel(writer, sheet_name='Setup', startrow=0, startcol=0)
 
         worksheet.write_string(0, df.shape[1] + 2, 'Passive Correlation Table')
         passive_correlation.to_excel(
             writer, sheet_name='Setup', startrow=1, startcol=df.shape[1] + 2)
+
+
+
 
         worksheet.write_string(
             passive_correlation.shape[0] + 6, df.shape[1] + 2, 'Passive Covariance Table')
@@ -534,32 +549,49 @@ class Utils:
         CCstressTestDf.columns = pd.MultiIndex.from_tuples(ct_multi_level)
         worksheet.write_string(0, active_correlation_table.shape[1] + passive_correlation.shape[1] + df.shape[1] + 6,
                                'Climate Change Stress Test')
+
+
+
         CCstressTestDf.to_excel(writer, sheet_name='Setup', startrow=1,
                                 startcol=active_correlation_table.shape[1] + passive_correlation.shape[1] + df.shape[
                                     1] + 6)
 
-        worksheet.write_string(passive_correlation.shape[0] + 6,
+        worksheet.write_string(passive_correlation.shape[0] + passive_covarianceDf.shape[0]+ 8,
                                active_correlation_table.shape[1] +
                                passive_correlation.shape[1] + df.shape[1] + 6,
                                'Total Covariance Table')
-        total_covarianceDf.to_excel(writer, sheet_name='Setup', startrow=passive_correlation.shape[0] + 7,
-                                    startcol=active_correlation_table.shape[1] + passive_correlation.shape[1] +
-                                    df.shape[1] + 6)
+        total_covarianceDf.to_excel(writer, sheet_name='Setup', startrow=passive_correlation.shape[0] + passive_covarianceDf.shape[0]+ 11,
+                                    startcol=passive_correlation.shape[1] + df.shape[1] + 4)
+
+        worksheet.set_column(3, 3, None, format1)
+        worksheet.set_column(4, 4, None, format2)
+        worksheet.set_column(5, 6, None, format1)
+        worksheet.set_column(7, 7, None, format2)
+        worksheet.set_column(8, 13, None, format1)
+        worksheet.set_column(df.shape[1] + 3, passive_correlation.shape[1] + df.shape[1] + 3, None, format3)
+        worksheet.set_column(active_correlation_table.shape[1] + passive_correlation.shape[1] + df.shape[1] + 7,
+                             active_correlation_table.shape[1] + passive_correlation.shape[1] + df.shape[1] +CCstressTestDf.shape[1]+6, None, format1)
+
 
         # Writing CMA Sheet
         worksheet = workbook.add_worksheet('CMA')
         writer.sheets['CMA'] = worksheet
-        if exists(self.path_input_cma):
-            CMA = pd.read_excel(self.path_input_cma)
-        else:
-            CMA = pd.read_excel(self.path_input_cma_permanent)
+        CMA = self.get_CMA()
 
+        worksheet.set_column(2,4, None, format1)
+        worksheet.set_column(5, 5, None, format2)
+        worksheet.set_column(6, len(CMA.columns), None, format1)
         CMA.to_excel(writer, sheet_name='CMA', startrow=0, startcol=0)
+
+        cma_correlation_table = self.get_cma_correlation_table()
+        cma_correlation_table.to_excel(writer, sheet_name='CMA', startrow=0, startcol=CMA.shape[1]+3)
+
 
         # Writing CCScen Sheet
         worksheet = workbook.add_worksheet('CC Scen')
         writer.sheets['CC Scen'] = worksheet
         CCScen = self.get_CCScen()
+        worksheet.set_column(4, len(CCScen.columns), None, format1)
         CCScen.to_excel(writer, sheet_name='CC Scen', startrow=0, startcol=0)
 
         writer.save()

@@ -53,25 +53,32 @@ if not portfolio_allocationDf.empty:
 
 UT = Utils()
 
-st.button(
-    'Risk Return Calculaion', key='risk_return_calculaion')
-if st.session_state.risk_return_calculaion:
+
+if st.button(
+        'Risk Return Calculaion', key='risk_return_calculaion'):
 
     st.markdown(""" Risk Return Calculaion""")
     st.checkbox("Use container width", value=False,
                 key="result_risk_allocation_width")
-    risk_return_calculationDf = UT.get_risk_return_calculation()
+    risk_return_calculationDf = UT.get_risk_return_calculation().style.format(
+        "{:.3%}")
     st.dataframe(data=risk_return_calculationDf,
                  use_container_width=st.session_state.result_risk_allocation_width)
 
-st.button(
-    'Climate Change Stress Test Calculaion', key="change_stress_test_calculaion")
-if st.session_state.change_stress_test_calculaion:
+
+if st.button(
+        'Climate Change Stress Test Calculaion', key="change_stress_test_calculaion"):
     st.markdown(""" Climate Change Stress Test """)
     st.checkbox("Use container width", value=False,
                 key="result_climate_change_stress_tests_width")
-    result_climate_change_stress_tests = UT.get_result_climate_change_stress_tests()
-    st.dataframe(data=result_climate_change_stress_tests,
+    # pd.options.display.float_format = '${:,.2f}'.format
+    result_climate_change_stress_tests = UT.get_result_climate_change_stress_tests(
+    )
+    # result_climate_change_stress_tests.loc[['Transition (2°C) 1yr', 'Transition (2°C) 3yr'], :] =
+    df = result_climate_change_stress_tests.iloc[[
+        1, 2, 4, 5, 7, 8, 10, 11]].style.format("{:.3%}")
+    
+    st.dataframe(data=df,
                  use_container_width=st.session_state.result_climate_change_stress_tests_width)
 
 if st.button('Generate Final Report'):

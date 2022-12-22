@@ -38,27 +38,27 @@ functions and their usage:
 
 utils.py
 
-'diagonalise_matrix' - Gets diagonal of a matrix
- 'get_CCScen' - Gets processed CC Scen Table from the uploaded CC Scen file
- 'get_CMA'- Gets processed CMA Table from the uploaded CMA file
- 'get_Setup' - Gets processed Setup Table (First Table in Setup Tab)
- 'get_active_correlation_table' - Calculates Active Correlation Table from provided CMA
- 'get_active_covariance_table' - Calculates Active Covariance Table from provided CMA
- 'get_climate_change_stress_tests' - Calculates Climate Change Stress Tests Table that will be written in last of Setup Tab
- 'get_cma_correlation_table' - Calculates CMA Correlation Table
- 'get_passive_correlation_matrix' - Calculates Passive Correlation Table
- 'get_passive_correlation_table' - Calculates Passive Correlation Table
- 'get_passive_covariance_np_matrix' - Calculates Passive Covariance Numpy Matrix
- 'get_passive_covariance_table' - Calculates Passive Covariance Table from provided CMA
- 'get_portfolio' - Get Processed Portfolio from uploaded Portfolio Allocation Table
- 'get_result_climate_change_stress_tests' - Calculates required result for Climate Change Stress Tests
- 'get_risk_return_calculation' - Calculates Risk Return (the first required result)
- 'get_total_covariance_table' - Calculates Total Covariance
- 'write_active_correlation_table' - Writes Active Correlation Table in excel
- 'write_active_covariance_table' - Writes Active Covariance Table in Excel
- 'write_passive_correlation_matrix' - Writes Passive Correlation Table in excel 
- 'write_passive_covariance_table' - Writes Passive Covariance Table in excel
- 'write_total_covariance_table'
- 'write_final_report' - Writes Final Report in excel with All the Sheets(i.e. Allocation and Result, Setup, CMA, and CCScen) in it
+1. 'diagonalise_matrix' - Gets diagonal of a matrix
+2. 'get_CCScen' - Gets processed CC Scen Table from the uploaded CC Scen file
+3. 'get_CMA'- Gets processed CMA Table from the uploaded CMA file
+4. 'get_Setup' - Gets processed Setup Table (First Table in Setup Tab)
+5. 'get_active_correlation_table' - Calculates Active Correlation Table from provided CMA
+6. 'get_active_covariance_table' - Calculates Active Covariance Table from provided CMA
+7. 'get_climate_change_stress_tests' - Calculates Climate Change Stress Tests Table that will be written in last of Setup Tab
+8. 'get_cma_correlation_table' - Calculates CMA Correlation Table
+9. 'get_passive_correlation_matrix' - Calculates Passive Correlation Table
+10. 'get_passive_correlation_table' - Calculates Passive Correlation Table
+11. 'get_passive_covariance_np_matrix' - Calculates Passive Covariance Numpy Matrix
+12. 'get_passive_covariance_table' - Calculates Passive Covariance Table from provided CMA
+13. 'get_portfolio' - Get Processed Portfolio from uploaded Portfolio Allocation Table
+14. 'get_result_climate_change_stress_tests' - Calculates required result for Climate Change Stress Tests
+15. 'get_risk_return_calculation' - Calculates Risk Return (the first required result)
+16. 'get_total_covariance_table' - Calculates Total Covariance
+17. 'write_active_correlation_table' - Writes Active Correlation Table in excel
+18. 'write_active_covariance_table' - Writes Active Covariance Table in Excel
+19. 'write_passive_correlation_matrix' - Writes Passive Correlation Table in excel 
+20. 'write_passive_covariance_table' - Writes Passive Covariance Table in excel
+21. 'write_total_covariance_table'
+22. 'write_final_report' - Writes Final Report in excel with All the Sheets(i.e. Allocation and Result, Setup, CMA, and CCScen) in it
  
 

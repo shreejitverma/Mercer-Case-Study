@@ -6,6 +6,7 @@ import math
 from utils import Utils
 
 UT = Utils()
+UT.write_final_report()
 portfolio_allocation_Df = UT.get_portfolio()
 cma_correlation_Df = UT.get_cma_correlation_table()
 SETUP = UT.get_Setup()
@@ -17,3 +18,4 @@ active_covarianceDf = UT.get_active_covariance_table()
 total_covarianceDf = UT.get_total_covariance_table()
 result_risk_allocation_calculation = UT.get_result_risk_allocation_calculation()
 ClimateChangeStressTestsDf = UT.get_result_climate_change_stress_tests()
+
