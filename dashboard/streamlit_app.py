@@ -26,13 +26,17 @@ st.markdown("""  """)
 st.markdown("""  """)
 
 st.markdown(""" Upload Required Files Below """)
+st.markdown(""" Keep in mind the structure; Reference the existing files with respective names in parent folder before upload """)
 cma = FileUploader('CMA')
 cmaDf = cma.upload_file()
 
 if not cmaDf.empty:
     st.checkbox("Use container width", value=False, key="cma_width")
     st.dataframe(data=cmaDf, use_container_width=st.session_state.cma_width)
-
+st.markdown(""" The Below File is Optional (Change the Allocations in Portfolio Allocation.xlsx and upload below """)
+st.markdown(""" Upload only if there is change in correlation of the universal set provided """)
+portfolio_allocation = FileUploader('CMA Corr')
+portfolio_allocationDf = portfolio_allocation.upload_file()
 ccscen = FileUploader('CC Scen')
 ccscenDf = ccscen.upload_file()
 
@@ -41,8 +45,12 @@ if not ccscenDf.empty:
     st.dataframe(
         data=ccscenDf, use_container_width=st.session_state.ccscen_width)
 
+st.markdown(""" The Below File is Optional (Change the Allocations in Portfolio Allocation.xlsx and upload below """)
 portfolio_allocation = FileUploader('Portfolio Allocation')
 portfolio_allocationDf = portfolio_allocation.upload_file()
+
+
+
 
 if not portfolio_allocationDf.empty:
     st.checkbox("Use container width", value=False,
@@ -60,9 +68,14 @@ if st.button(
     st.markdown(""" Risk Return Calculaion""")
     st.checkbox("Use container width", value=False,
                 key="result_risk_allocation_width")
-    risk_return_calculationDf = UT.get_risk_return_calculation().style.format(
-        "{:.3%}")
-    st.dataframe(data=risk_return_calculationDf,
+    risk_return_calculationDf = UT.get_risk_return_calculation()
+        # .style.format( "{:.3%}")
+    df = risk_return_calculationDf.iloc[[
+        0,1, 2, 4, 5,6, 7, 8, 10, 11]].style.format("{:.3%}")
+
+    st.dataframe(data=df,
+                 use_container_width=st.session_state.result_risk_allocation_width)
+    st.dataframe(data=risk_return_calculationDf.iloc[[3]].style.format("{:.2}"),
                  use_container_width=st.session_state.result_risk_allocation_width)
 
 
