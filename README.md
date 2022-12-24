@@ -10,6 +10,7 @@ Install the following dependencies:
 pip install pandas
 pip install numpy
 pip install openpyxl
+pip install XlsxWriter
 pip install streamlit
 
 
@@ -20,6 +21,7 @@ Open Terminal in the downloaded folder:
 Two files need to be uploaded: 
 (Please see the existing file and their structure in the Folder; make sure the uploaded file is consistent with their respective existing files in the folder)
 CMA.xlsx - (Please see the existing file in the Folder)
+CMA Corr.xlsx - (Optional) Correlation Matrix of the assets.(Only required if the assests are going to change)
 CC Scen.xlsx - (Without Cumulative Returns)
 Portfolio Allocation.xlsx - (All the allocation changes to be made here only)
 3. Click on 'Risk Return Caculation' button to see the respective result.
